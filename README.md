@@ -34,7 +34,7 @@ The Jironaut is an AI-powered quality reviewer for Jira tickets. It evaluates yo
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 18+ 
 - npm or yarn
 - Anthropic API key ([get one here](https://console.anthropic.com/))
 
@@ -54,11 +54,16 @@ cp .env.example .env.local
 # Add your API key to .env.local
 # ANTHROPIC_API_KEY=sk-ant-your-key-here
 
-# Start development server
+# Start development server (local testing without serverless functions)
 npm run dev
+
+# OR use Vercel dev server (includes serverless function support)
+vercel dev
 ```
 
-Visit `http://localhost:5173` to see The Jironaut in action!
+Visit `http://localhost:3000` (Vercel) or `http://localhost:5173` (Vite) to see The Jironaut in action!
+
+**Note:** For full functionality including AI analysis, use `vercel dev` as it runs the serverless API function. Plain `npm run dev` will work for UI development but API calls will fail.
 
 ---
 
@@ -75,11 +80,20 @@ npm install -g vercel
 # Login to Vercel
 vercel login
 
-# Deploy
-vercel
-
-# Add your API key as an environment variable when prompted
+# Deploy to production
+vercel --prod
 ```
+
+**Important:** Add your `ANTHROPIC_API_KEY` as an environment variable in the Vercel dashboard:
+1. Go to your project settings
+2. Navigate to "Environment Variables"
+3. Add `ANTHROPIC_API_KEY` with your key
+4. Select all environments (Production, Preview, Development)
+
+**Auto-Deploy from GitHub:**
+1. Push your code to GitHub
+2. Deploy with `vercel --prod` and link to your GitHub repo
+3. Every future push to `main` will automatically deploy!
 
 ### Deploy to Netlify
 
@@ -206,6 +220,9 @@ jironaut/
 
 ### Custom Definition of Ready:
 Click "Customize" → Upload your team's DoR as a .txt or .md file. The Jironaut will adapt its analysis to your specific criteria.
+
+### Demo Data:
+Want to try The Jironaut with example tickets? Check out [`MOCK_DATA.md`](MOCK_DATA.md) for 8 sample tickets ranging from excellent (85%+) to poor (<30%) quality, covering all ticket types.
 
 ---
 
