@@ -1,13 +1,9 @@
-```javascript
-// This serverless function protects your API key
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle OPTIONS request for CORS
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
@@ -19,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     const apiKey = process.env.ANTHROPIC_API_KEY;
-
+    
     if (!apiKey) {
       throw new Error('API key not configured');
     }
@@ -44,9 +40,8 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('API Error:', error);
-    res.status(500).json({
+    res.status(500).json({ 
       error: error.message || 'Failed to analyze ticket'
     });
   }
 }
-```

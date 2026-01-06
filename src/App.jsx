@@ -166,7 +166,7 @@ ${formData.description}
 
 Return ONLY the JSON object, nothing else.`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
