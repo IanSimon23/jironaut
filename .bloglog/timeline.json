@@ -1,0 +1,34 @@
+{
+  "entries": [
+    {
+      "id": "c7456916-eec7-4bb9-a0db-0d6774f33ff4",
+      "timestamp": "2026-01-27T07:50:58.883Z",
+      "type": "win",
+      "content": "Starting Jironaut 2.0 pivot - from ticket police to ticket coach"
+    },
+    {
+      "id": "0f952cc5-1cbc-4fcc-9c26-d14e524e0b6b",
+      "timestamp": "2026-01-27T07:51:51.053Z",
+      "type": "note",
+      "content": "Created JIRONAUT_V2_PLAN.md capturing architecture, phases, and development workflow"
+    },
+    {
+      "id": "df93cd7c-632b-43b1-bb6e-6919af108117",
+      "timestamp": "2026-01-27T08:02:14.983Z",
+      "type": "win",
+      "content": "Phase 1 complete - Coach mode MVP with chat interface and live ticket preview"
+    },
+    {
+      "id": "a3e1f8b2-7d4c-4a19-b6e0-9c82d1f54a73",
+      "timestamp": "2026-01-30T12:00:00.000Z",
+      "type": "blocker",
+      "content": "Monolithic coach endpoint causing ~5s perceived latency per turn. The single api/coach.js endpoint was doing double duty: generating a conversational coaching response AND extracting structured ticket JSON, all in one synchronous Anthropic call. The model was forced to produce a JSON envelope containing both the chat message and ticket field updates, which meant (1) the entire response had to complete before the user saw anything (~5s of staring at 'Thinking...'), (2) the JSON output constraint made the coaching voice formulaic and robotic — temperature 0.4 with a rigid JSON schema ate all the personality, (3) token budget of 512 was split between coaching prose and JSON overhead so responses were often truncated, and (4) JSON parse failures from the model occasionally broke the whole turn with no fallback. Resolution: split into two concerns. api/coach.js rewritten as a Vercel Edge Function with SSE streaming — plain text only, temperature 0.7, 1024 token budget, rich system prompt with the full guided prompting framework, few-shot examples, and anti-parrot rules. Text starts appearing in ~0.5-1s via ReadableStream. New api/extract.js runs in the background after the coaching response finishes — Haiku at temperature 0, focused extraction prompt, cumulative across the full conversation so it self-corrects. Extraction failures are non-fatal; the conversation continues and the next turn re-extracts. Frontend hook rewritten with getReader() stream consumption, placeholder message with live content updates, pulsing cursor during stream, and input gating until stream completes."
+    },
+    {
+      "id": "b7d23a91-4e5f-4c8b-a1d3-6f09e2c87b45",
+      "timestamp": "2026-01-30T12:30:00.000Z",
+      "type": "blocker",
+      "content": "SSE streaming implemented but responses still arriving in one 50s burst. The coach endpoint was correctly calling res.write() for each chunk, but vercel dev buffers the entire serverless function response before forwarding it to the browser — the streaming was working server-side but the dev proxy held everything until res.end(). Additionally, the initial Edge Function approach (export const config = { runtime: 'edge' }) failed with an esbuild cross-platform binary error — node_modules was installed on Windows but WSL needs the Linux esbuild binary. Resolution: (1) Reverted api/coach.js from Edge Function back to standard Node.js serverless function using res.write() — same SSE protocol, no esbuild dependency. (2) Added a Vite plugin (apiMiddleware) in vite.config.js that handles /api/* routes directly inside Vite's dev server, bypassing vercel dev entirely. The plugin parses JSON bodies, polyfills Vercel's res.status() and res.json() helpers, loads handlers via server.ssrLoadModule() for HMR support, and loads .env vars via loadEnv() with empty prefix so ANTHROPIC_API_KEY is available on process.env. Raw Node.js HTTP res.write() flushes immediately — no intermediate proxy to buffer. Dev now runs via npm run dev (Vite) instead of vercel dev. Production Vercel deploys still use the serverless functions unchanged."
+    }
+  ]
+}
