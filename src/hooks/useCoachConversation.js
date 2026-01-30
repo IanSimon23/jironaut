@@ -23,6 +23,28 @@ function toApiMessages(msgs) {
     .map(m => ({ role: m.role, content: m.content }));
 }
 
+// Derive section from which fields are actually populated.
+// This is the ground truth — if the data is there, the section should advance.
+const SECTION_ORDER = ['intent', 'outcome', 'scope', 'success', 'constraints', 'complete'];
+
+function deriveSectionFromData(updates) {
+  if (!updates) return 'intent';
+  const hasIntent = updates.intent != null;
+  const hasOutcome = updates.outcome != null;
+  const hasScope = updates.scope != null;
+  const hasSuccess = Array.isArray(updates.successCriteria) && updates.successCriteria.length > 0;
+
+  if (hasIntent && hasOutcome && hasScope && hasSuccess) return 'complete';
+  if (hasIntent && hasOutcome && hasScope) return 'success';
+  if (hasIntent && hasOutcome) return 'scope';
+  if (hasIntent) return 'outcome';
+  return 'intent';
+}
+
+function furthestSection(a, b) {
+  return SECTION_ORDER.indexOf(a) >= SECTION_ORDER.indexOf(b) ? a : b;
+}
+
 export function useCoachConversation(onTicketUpdate) {
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,10 +78,14 @@ export function useCoachConversation(onTicketUpdate) {
         onTicketUpdate(data.ticketUpdates);
       }
 
-      if (data.suggestedSection) {
-        currentSectionRef.current = data.suggestedSection;
-        setCurrentSection(data.suggestedSection);
-      }
+      // Advance section based on whichever is further ahead:
+      // the extractor's suggestion or what the data actually shows.
+      const dataSection = deriveSectionFromData(data.ticketUpdates);
+      const apiSection = data.suggestedSection || currentSectionRef.current;
+      const nextSection = furthestSection(dataSection, apiSection);
+
+      currentSectionRef.current = nextSection;
+      setCurrentSection(nextSection);
     } catch (err) {
       console.error('Extraction error (non-fatal):', err);
     }
