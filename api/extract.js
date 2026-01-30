@@ -22,28 +22,41 @@ export default async function handler(req, res) {
   try {
     const { messages, currentSection } = req.body;
 
-    const systemPrompt = `You are a structured data extractor. Given a coaching conversation about creating a Jira ticket, extract ticket information cumulatively from the ENTIRE conversation.
+    const systemPrompt = `You are a structured data extractor for Jira ticket coaching conversations. On every call you receive the FULL conversation so far. Extract cumulatively — return the complete picture each time, not just what's new.
 
 CURRENT SECTION: ${currentSection}
+SECTIONS IN ORDER: intent → outcome → scope → success → constraints → complete
 
-SECTIONS IN ORDER: intent, outcome, scope, success, constraints, complete
+FIELD DEFINITIONS:
+- intent: 1-3 sentences. Why this work matters. The problem being solved or opportunity pursued, and who is affected. Synthesize from what the user said — don't copy verbatim.
+- outcome: 1-3 sentences. What will be different when the work is done. Focus on impact and change, not implementation steps.
+- scope: Two arrays. "included" = what's in scope (systems, features, surfaces). "excluded" = what's explicitly out of scope or deferred. Use short phrases.
+- successCriteria: 3-5 clear statements. How we'll know it worked. Concrete and verifiable.
+- constraints: Dependencies, deadlines, compliance needs, technical constraints. Only if mentioned. Empty array [] if none discussed.
 
-RULES:
-- Extract information from ALL messages in the conversation, not just the latest
-- Synthesize and refine — don't copy verbatim
-- Only include fields where you have meaningful information
-- Set fields to null if no information has been provided yet
-- For suggestedSection: stay on current section if more clarity is needed, advance to the next section when the current one is sufficiently clear, set to "complete" when all sections have enough information
-- isComplete should be true only when all non-optional sections have clear information
+SECTION ADVANCEMENT:
+- Advance when the user has given a clear answer for the current section (even if brief).
+- If the coach has already moved on to asking about the next section, advance to match.
+- "constraints" is optional — if the user says "nothing" or the coach wraps up, advance to "complete".
+- Set "complete" when intent + outcome + scope + success all have content.
 
-Respond with ONLY a JSON object (no markdown, no backticks):
+EXAMPLE:
+User: "Our dashboard search takes 8+ seconds and users are complaining."
+Coach: "That's impacting users directly. When this is fixed, what should the experience feel like?"
+User: "Sub-second results. Also the filters should actually work — right now half of them are broken."
+Coach: "Clear outcome. What's in scope for this pass — all filters, or a specific subset?"
+
+Extract:
+{"ticketUpdates":{"intent":"Dashboard search is unacceptably slow (8+ seconds) and users are actively complaining. Broken filters compound the poor experience.","outcome":"Search returns results in under one second. Dashboard filters work correctly.","scope":null,"successCriteria":null,"constraints":null},"suggestedSection":"scope","isComplete":false}
+
+Respond with ONLY a JSON object. No markdown, no backticks, no explanation.
 {
   "ticketUpdates": {
-    "intent": "extracted intent text or null",
-    "outcome": "extracted outcome text or null",
-    "scope": { "included": ["items"], "excluded": ["items"] } or null,
-    "successCriteria": ["criterion 1", "criterion 2"] or null,
-    "constraints": ["constraint 1"] or null
+    "intent": "string or null",
+    "outcome": "string or null",
+    "scope": { "included": ["..."], "excluded": ["..."] } or null,
+    "successCriteria": ["..."] or null,
+    "constraints": ["..."] or null
   },
   "suggestedSection": "intent|outcome|scope|success|constraints|complete",
   "isComplete": false
@@ -58,7 +71,7 @@ Respond with ONLY a JSON object (no markdown, no backticks):
       },
       body: JSON.stringify({
         model: 'claude-3-5-haiku-20241022',
-        max_tokens: 256,
+        max_tokens: 512,
         temperature: 0,
         system: systemPrompt,
         messages: messages

@@ -38,20 +38,14 @@ export function useTicketBuilder() {
       }
 
       if (updates.successCriteria !== undefined && updates.successCriteria !== null) {
-        // Append new criteria rather than replacing
         if (Array.isArray(updates.successCriteria)) {
-          const existingCriteria = new Set(prev.successCriteria);
-          const newCriteria = updates.successCriteria.filter(c => !existingCriteria.has(c));
-          newTicket.successCriteria = [...prev.successCriteria, ...newCriteria];
+          newTicket.successCriteria = updates.successCriteria;
         }
       }
 
       if (updates.constraints !== undefined && updates.constraints !== null) {
-        // Append new constraints rather than replacing
         if (Array.isArray(updates.constraints)) {
-          const existingConstraints = new Set(prev.constraints);
-          const newConstraints = updates.constraints.filter(c => !existingConstraints.has(c));
-          newTicket.constraints = [...prev.constraints, ...newConstraints];
+          newTicket.constraints = updates.constraints;
         }
       }
 
