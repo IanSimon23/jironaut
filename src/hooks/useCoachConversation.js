@@ -15,6 +15,14 @@ Tell me about the issue or need that's driving this work.`,
   isStreaming: false
 };
 
+// Build API-safe messages array: must start with user role, roles must alternate.
+// Strips the initial UI greeting since it's not part of the real conversation.
+function toApiMessages(msgs) {
+  return msgs
+    .filter(m => !m.id?.startsWith('initial'))
+    .map(m => ({ role: m.role, content: m.content }));
+}
+
 export function useCoachConversation(onTicketUpdate) {
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,10 +33,7 @@ export function useCoachConversation(onTicketUpdate) {
 
   const runExtraction = useCallback(async (conversationMessages) => {
     try {
-      const apiMessages = conversationMessages.map(m => ({
-        role: m.role,
-        content: m.content
-      }));
+      const apiMessages = toApiMessages(conversationMessages);
 
       const response = await fetch('/api/extract', {
         method: 'POST',
@@ -39,7 +44,11 @@ export function useCoachConversation(onTicketUpdate) {
         })
       });
 
-      if (!response.ok) return;
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => '');
+        console.error('Extraction API error:', response.status, errBody);
+        return;
+      }
 
       const data = await response.json();
 
@@ -52,9 +61,6 @@ export function useCoachConversation(onTicketUpdate) {
         setCurrentSection(data.suggestedSection);
       }
     } catch (err) {
-      // Extraction failure is non-fatal — conversation continues,
-      // ticket panel just doesn't update for this turn.
-      // Next extraction re-extracts cumulatively.
       console.error('Extraction error (non-fatal):', err);
     }
   }, [onTicketUpdate]);
@@ -86,10 +92,7 @@ export function useCoachConversation(onTicketUpdate) {
 
     try {
       const allMessages = [...messages, userMessage];
-      const conversationHistory = allMessages.map(m => ({
-        role: m.role,
-        content: m.content
-      }));
+      const conversationHistory = toApiMessages(allMessages);
 
       const response = await fetch('/api/coach', {
         method: 'POST',
