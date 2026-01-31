@@ -14,7 +14,7 @@ export default function App() {
           <img
             src="/images/jironaut-logo.png"
             alt="The Jironaut — Charting the stars of Jira"
-            className="h-14 w-auto"
+            className="h-[4.8rem] w-auto"
           />
 
           <div className="flex items-center gap-4">

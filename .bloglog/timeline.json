@@ -95,6 +95,12 @@
       "timestamp": "2026-01-31T11:15:00.000Z",
       "type": "note",
       "content": "Reworked header branding to match writing-gym pattern. Removed separate h1 title and tagline text, replaced with a larger standalone logo on the left (h-14, auto width). Moved coach/classic toggle slightly left, added a vertical divider, then GitHub icon linking to the repo and Curious Coach Tools logo linking to curiouscoach.tools. Tightened header padding for a compact look. Consistent branding across both tools now."
+    },
+    {
+      "id": "b5c92d47-8a13-4f6e-c3b1-4d27e8f01a93",
+      "timestamp": "2026-01-31T11:30:00.000Z",
+      "type": "note",
+      "content": "Tweaked header logo sizing — bumped from h-14 to h-[4.8rem] (~37% larger) for better visual presence. Kept compact py-3 padding after briefly adding more whitespace and rolling it back. Added both logo PNGs to git (jironaut-logo.png updated, curious_coach_tools_logo.png new). Left .xcf GIMP source file out of the repo."
     }
   ]
 }
