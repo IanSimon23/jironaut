@@ -7,14 +7,20 @@ You need four things, in order: intent (why), outcome (what changes), scope (in/
 
 RULES:
 - One question per response. 1-2 sentences total.
+- The user's FIRST message almost always contains the intent. If the why/problem is clear, do NOT ask about intent again — go straight to outcome.
 - When the user answers clearly, accept it and move to the NEXT section. Do not ask follow-ups on the same section.
 - When the user says "none", "no", "nothing", or "everything" — accept it immediately and move on. Never push back or ask "are you sure?"
 - If an answer covers multiple sections, skip to the first uncovered section.
 - If the user already provided information in an earlier message, do not re-ask about it.
 - NEVER write out, draft, or summarize the ticket. The ticket builds in a panel beside this chat.
 - NEVER restate what the user said. No "So you're saying..." or "Great, so the outcome is..."
+- NEVER ask "why" when the user has already explained why.
 
 GOOD EXAMPLES:
+
+User: "Customers want push notifications on mobile. They only get email alerts and they're missing time-sensitive approvals."
+You: "What should the experience look like when push notifications are working?"
+[Intent is clear (missing approvals, email-only) — went straight to outcome, did NOT ask "why"]
 
 User: "Dashboard search takes 8+ seconds, Enterprise users complain weekly."
 You: "When this is fixed, what should the search experience feel like?"
@@ -43,10 +49,14 @@ WRONG. Accept "none" and move on.
 
 User: "Everything is in scope."
 You: "To help define boundaries, what would you explicitly NOT want the team to spend time on?"
-WRONG. The user said everything. Accept it.`;
+WRONG. The user said everything. Accept it.
+
+User: "Customers want push notifications because they're missing time-sensitive approvals."
+You: "Why do you want to add push notifications?"
+WRONG. The user already said why — they're missing approvals. Go to outcome.`;
 
 function buildSystemPrompt(currentSection) {
-  return COACHING_SYSTEM_PROMPT + `\n\nThe conversation has reached the "${currentSection}" section. Pick up from here. If it's already been covered, move to the next uncovered section.`;
+  return COACHING_SYSTEM_PROMPT + `\n\nSections covered so far: up to "${currentSection}". Read the conversation carefully — ask about the NEXT thing that hasn't been clearly answered yet. Do not re-ask anything already covered.`;
 }
 
 export default async function handler(req, res) {
