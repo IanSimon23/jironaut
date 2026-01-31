@@ -22,37 +22,44 @@ export default async function handler(req, res) {
   try {
     const { messages, currentSection } = req.body;
 
-    const systemPrompt = `Extract Jira ticket fields from a coaching conversation. You receive the FULL conversation each time. Extract EVERYTHING you can find, even if it was mentioned while discussing a different topic.
+    const systemPrompt = `Extract Jira ticket fields from a coaching conversation. You receive the FULL conversation each time. Populate as many fields as possible, as early as possible. A rough extraction now is better than a perfect one later — you get the full conversation again next turn to refine.
 
 FIELDS:
 - intent: 1-3 sentences. Why this work matters, who is affected.
 - outcome: 1-3 sentences. What will be different when done. Impact, not tasks.
 - scope: { "included": ["..."], "excluded": ["..."] }. What's in and out.
 - successCriteria: ["..."]. How we'll know it worked. Concrete statements.
-- constraints: ["..."]. Deadlines, dependencies, technical limits. [] if none.
+- constraints: ["..."]. Deadlines, dependencies, technical limits. [] if none mentioned.
 
-CRITICAL RULES:
-- Extract a field AS SOON as any relevant information appears, even if the conversation hasn't formally reached that section.
-- If the user mentions scope while answering about outcome, extract scope.
-- If the user's first message contains intent AND hints at outcome, extract both.
-- Do not wait for a section to be "discussed" — extract what's there.
-- Set a field to null ONLY if there is genuinely zero information about it anywhere in the conversation.
+RULES:
+- Extract from hints and implications, not just explicit statements.
+- If the problem implies a solution, extract outcome. If the user names specific areas, extract scope.
+- Infer successCriteria from any numbers, metrics, or concrete descriptions of "done."
+- null means genuinely ZERO signal anywhere in the conversation — not even a hint.
 
-For suggestedSection, pick the next section that still needs more information:
+suggestedSection: next section that needs MORE information.
 intent → outcome → scope → success → constraints → complete.
-Set "complete" when intent + outcome + scope + success all have content.
+"complete" when intent + outcome + scope + success all have content.
 
-EXAMPLES:
+EXAMPLE 1 — After 1 user message:
 
-Conversation (2 exchanges):
-User: "We're losing 40% of users at onboarding. They drop off at invite team members."
-Coach: "What should onboarding look like when this is fixed?"
-User: "Get users to their first project fast. Team invites can wait."
+User: "Customers want push notifications on mobile. They only get email alerts and they're missing time-sensitive approvals."
 
-Extract:
-{"ticketUpdates":{"intent":"40% of new users drop off during onboarding at the invite team members step.","outcome":"Users complete their first project quickly with less friction. Team invitations deferred to later.","scope":{"included":["Onboarding flow","First project setup"],"excluded":["Team invitation step"]},"successCriteria":null,"constraints":null},"suggestedSection":"success","isComplete":false}
+{"ticketUpdates":{"intent":"Customers only receive email alerts and are missing time-sensitive approvals that need quick action.","outcome":"Users receive push notifications on mobile for time-sensitive items so approvals aren't missed.","scope":{"included":["Mobile push notifications","Time-sensitive approval alerts"],"excluded":[]},"successCriteria":null,"constraints":null},"suggestedSection":"success","isComplete":false}
 
-Note: scope was extracted even though the coach only asked about outcome — the user's answer implied it.
+Intent is explicit. Outcome is implied — push notifications solve missed approvals. Scope is implied — mobile push for approvals. 3 fields from 1 message.
+
+EXAMPLE 2 — After 3 exchanges:
+
+User: "Dashboard search takes 8+ seconds. Enterprise users complain weekly."
+Coach: "When this is fixed, what should search feel like?"
+User: "1-2 second response times. Should also reduce error logs and support tickets."
+Coach: "What's in scope for this pass?"
+User: "Give the devs free rein."
+
+{"ticketUpdates":{"intent":"Dashboard search takes 8+ seconds, causing weekly complaints from enterprise users.","outcome":"Search returns results in 1-2 seconds. Error logs and support ticket volume decrease.","scope":{"included":["All dashboard search infrastructure"],"excluded":[]},"successCriteria":["Search response time under 2 seconds","Reduction in search-related error logs","Fewer support tickets about search performance"],"constraints":null},"suggestedSection":"constraints","isComplete":false}
+
+successCriteria inferred from the outcome answer — "1-2 seconds", "reduce error logs", "reduce support tickets" are concrete enough to extract as criteria immediately.
 
 Respond with ONLY a JSON object. No markdown, no backticks.
 {"ticketUpdates":{"intent":"...or null","outcome":"...or null","scope":"...or null","successCriteria":"...or null","constraints":"...or null"},"suggestedSection":"...","isComplete":false}`;
