@@ -89,6 +89,12 @@
       "timestamp": "2026-01-31T10:45:00.000Z",
       "type": "win",
       "content": "Created standalone TICKET_COACH_PROMPT.md — a single portable markdown file that encapsulates the entire coaching and extraction logic for use in any AI chat tool (ChatGPT custom instructions, Claude projects, GitHub Copilot, etc.). Merges the battle-tested coach.js prompt (conversation rules, good/bad examples, section pacing) with the extract.js logic (inference from hints, progressive field tracking) and the Jira Cloud markdown output format (### headings, - [ ] checkboxes for success criteria). Key insight: people may not want to use the Jironaut frontend — they'll want the prompting methodology in their existing tools. This makes the coaching framework portable. Someone can drop the file into any project and get the same ticket quality without the app."
+    },
+    {
+      "id": "c8f41a23-6d19-4e7b-a5c0-2b93e7d08f16",
+      "timestamp": "2026-01-31T11:15:00.000Z",
+      "type": "note",
+      "content": "Reworked header branding to match writing-gym pattern. Removed separate h1 title and tagline text, replaced with a larger standalone logo on the left (h-14, auto width). Moved coach/classic toggle slightly left, added a vertical divider, then GitHub icon linking to the repo and Curious Coach Tools logo linking to curiouscoach.tools. Tightened header padding for a compact look. Consistent branding across both tools now."
     }
   ]
 }
