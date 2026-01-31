@@ -101,6 +101,12 @@
       "timestamp": "2026-01-31T11:30:00.000Z",
       "type": "note",
       "content": "Tweaked header logo sizing — bumped from h-14 to h-[4.8rem] (~37% larger) for better visual presence. Kept compact py-3 padding after briefly adding more whitespace and rolling it back. Added both logo PNGs to git (jironaut-logo.png updated, curious_coach_tools_logo.png new). Left .xcf GIMP source file out of the repo."
+    },
+    {
+      "id": "a9e26f81-4c53-4d7a-b2e0-8f15c3a49d72",
+      "timestamp": "2026-01-31T11:45:00.000Z",
+      "type": "note",
+      "content": "Fixed page loading scrolled down — browser was restoring previous scroll position on refresh, chopping off the top of the logo. Added window.scrollTo(0, 0) on App mount to force scroll to top."
     }
   ]
 }

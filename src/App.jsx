@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageSquare, ClipboardCheck } from 'lucide-react';
 import CoachView from './components/coach/CoachView';
 import ClassicView from './components/classic/ClassicView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('coach');
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
