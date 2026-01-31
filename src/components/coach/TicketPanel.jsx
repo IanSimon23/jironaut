@@ -1,7 +1,55 @@
-import React from 'react';
-import { FileText, Target, Layers, CheckSquare, AlertCircle } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { FileText, Target, Layers, CheckSquare, AlertCircle, Copy, Check } from 'lucide-react';
+
+function formatTicketForJira(ticket) {
+  const parts = [];
+
+  if (ticket.intent?.trim()) {
+    parts.push(`### Intent\n${ticket.intent.trim()}`);
+  }
+
+  if (ticket.outcome?.trim()) {
+    parts.push(`### Outcome\n${ticket.outcome.trim()}`);
+  }
+
+  if (ticket.scope?.included?.length > 0 || ticket.scope?.excluded?.length > 0) {
+    let scope = '### Scope';
+    if (ticket.scope.included.length > 0) {
+      scope += '\n**In scope:**\n' + ticket.scope.included.map(s => `- ${s}`).join('\n');
+    }
+    if (ticket.scope.excluded.length > 0) {
+      scope += '\n\n**Out of scope:**\n' + ticket.scope.excluded.map(s => `- ${s}`).join('\n');
+    }
+    parts.push(scope);
+  }
+
+  if (ticket.successCriteria?.length > 0) {
+    parts.push(
+      '### Success Criteria\n' +
+      ticket.successCriteria.map(c => `- [ ] ${c}`).join('\n')
+    );
+  }
+
+  if (ticket.constraints?.length > 0) {
+    parts.push(
+      '### Constraints\n' +
+      ticket.constraints.map(c => `- ${c}`).join('\n')
+    );
+  }
+
+  return parts.join('\n\n');
+}
 
 export default function TicketPanel({ ticket, currentSection }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    const text = formatTicketForJira(ticket);
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [ticket]);
+
   const sections = [
     { key: 'intent', label: 'Intent', icon: Target, field: 'intent' },
     { key: 'outcome', label: 'Outcome', icon: Layers, field: 'outcome' },
@@ -160,11 +208,31 @@ export default function TicketPanel({ ticket, currentSection }) {
         )}
       </div>
 
-      {/* Footer with format options (placeholder for Phase 2) */}
+      {/* Footer */}
       <div className="px-6 py-4 border-t border-gray-200 bg-white">
-        <p className="text-xs text-gray-400 text-center">
-          Format options coming soon
-        </p>
+        <button
+          onClick={handleCopy}
+          disabled={!ticket.intent?.trim()}
+          className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            copied
+              ? 'bg-green-100 text-green-700 border border-green-300'
+              : ticket.intent?.trim()
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          {copied ? (
+            <>
+              <Check className="w-4 h-4" />
+              Copied for Jira
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4" />
+              Copy to Jira
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
